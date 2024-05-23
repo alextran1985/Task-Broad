@@ -1,5 +1,5 @@
 // Retrieve tasks and nextId from localStorage
-let taskList = JSON.parse(localStorage.getItem("tasks"));
+let taskList = JSON.parse(localStorage.getItem("tasks")) || [];
 let nextId = JSON.parse(localStorage.getItem("nextId"));
 const todoCardsEl = $("#todo-cards");
 
@@ -54,8 +54,7 @@ function createTaskCard(task) {
 
 // Todo: create a function to render the task list and make cards draggable
 function renderTaskList() {
-  // we should GRAB or CURRENT DATASET
-  const currentTasks = JSON.parse(localStorage.getItem("tasks"));
+ 
     // ? Empty existing project cards out of the lanes
     const todoList = $('#todo-cards');
     todoList.empty();
@@ -67,16 +66,16 @@ function renderTaskList() {
     doneList.empty();
 
   // HOW would we differentiate one task from another(?)  --> which tasks belong in which column(?)
-  for (let i = 0; i < currentTasks.length; i++) {
-    // console.log("Current Task: ", currentTasks[i]);
-    if (currentTasks[i].status == "to-do") {
-      todoList.append(createTaskCard(currentTasks[i]));
+  for (let i = 0; i < taskList.length; i++) {
+    // console.log("Current Task: ", taskList[i]);
+    if (taskList[i].status == "to-do") {
+      todoList.append(createTaskCard(taskList[i]));
       // create a new card in the TODO column
-    } else if (currentTasks[i].status == "in-progress") {
-      inProgressList.append(createTaskCard(currentTasks[i]));
+    } else if (taskList[i].status == "in-progress") {
+      inProgressList.append(createTaskCard(taskList[i]));
       // create a new card in the IN PROGRESS column
-    } else if (currentTasks[i].status == "done") {
-      doneList.append(createTaskCard(currentTasks[i]));
+    } else if (taskList[i].status == "done") {
+      doneList.append(createTaskCard(taskList[i]));
       // create a new card in the DONE column
     }
   }
@@ -105,15 +104,6 @@ function handleAddTask(event) {
   const description = $("#task-description").val();
   const date = $("#datepicker").val();
 
-  // console.log("User data: ", title, description, date);
-  /* if(!taskList){ 
-    tasklist = [];
-  }
-  */
-  let savedData = JSON.parse(localStorage.getItem("tasks"));
-  if (!savedData) {
-    savedData = [];
-  }
 
   // console.log("task list: ", savedData);
   const task = {
@@ -124,9 +114,8 @@ function handleAddTask(event) {
     status: "to-do",
   };
   console.log("new Task: ", task);
-  //taskList.push(task);
-  savedData.push(task);
-  localStorage.setItem("tasks", JSON.stringify(savedData));
+  taskList.push(task);
+  localStorage.setItem("tasks", JSON.stringify(taskList));
   $("#formModal").modal("hide");
   renderTaskList();
 
@@ -140,44 +129,25 @@ function handleAddTask(event) {
 // Todo: create a function to handle deleting a task
 function handleDeleteTask() {
   const taskId = $(this).attr('data-task-id');
-  const tasks = readTasksFromStorage();
+  
   
   // ? Remove task from the array. There is a method called `filter()` for this that is better suited which we will go over in a later activity. For now, we will use a `forEach()` loop to remove the task.
-  tasks.forEach((task) => {
+  taskList.forEach((task) => {
     if (task.id === +taskId) {
       console.log("test")
-      tasks.splice(tasks.indexOf(task), 1);
+      taskList.splice(taskList.indexOf(task), 1);
     }
   });
 
-  // ? We will use our helper function to save the tasks to localStorage
-  saveTasksToStorage(tasks);
-
+localStorage.setItem("tasks",JSON.stringify(taskList))
   // ? Here we use our other function to print tasks back to the screen
   renderTaskList();
 }
 
-function saveTasksToStorage(tasks){
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-
-}
-function readTasksFromStorage(){
-  let tasks = JSON.parse(localStorage.getItem('tasks'));
-  if (!tasks) {
-    tasks = [];
-  }
-
-  // ? Return the tasks array either empty or with data in it whichever it was determined to be by the logic right above.
-  return tasks;
-
-}
-
-
 
 // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
-  // ? Read tasks from localStorage
-  const tasks = readTasksFromStorage();
+  
 
   // ? Get the task id from the event
   const taskId = ui.draggable[0].dataset.taskId;
@@ -185,15 +155,15 @@ function handleDrop(event, ui) {
   // ? Get the id of the lane that the card was dropped into
   const newStatus = event.target.id;
   console.log(newStatus)
-  for (let task of tasks) {
+  for (let task of taskList) {
     // ? Find the task card by the `id` and update the task status.
     if (task.id === +taskId) {
       task.status = newStatus;
     }
   }
   // ? Save the updated tasks array to localStorage (overwritting the previous one) and render the new task data to the screen.
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-  console.log(tasks)
+  localStorage.setItem("tasks", JSON.stringify(taskList));
+
   renderTaskList();
 }
 
